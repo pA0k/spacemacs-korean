@@ -106,10 +106,7 @@
 (defun korean/init-cal-korea-x ()
   (use-package cal-korea-x
     :init
-    (setq calendar-week-start-day 0
-          calendar-latitude       35.1
-          calendar-longitude      12
-          calendar-location-name  "Busan, South Korea")
+    (setq calendar-week-start-day 0)
     :config
     (setq calendar-holidays cal-korea-x-korean-holidays)
 
