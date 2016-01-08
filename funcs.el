@@ -20,8 +20,8 @@
       (set-fontset-font t 'bopomofo          (font-spec :name zh-hanja)))
 
     ;; one CJK char width = two latin chars :fixed width fonts
-    (dolist (elt `((,ko-hangul    . ,scale)
-                   ;; (,ko-yethangul . ,scale) ;; variable width
-                   (if ,ja-kana (,ja-kana   . ,scale))
-                   (if ,zh-hanja (,zh-hanja . ,scale))))
-      (add-to-list 'face-font-rescale-alist elt))))
+    (add-to-list 'face-font-rescale-alist `(,ko-hangul . ,scale))
+    (if ja-kana
+        (add-to-list 'face-font-rescale-alist `(,ja-kana . ,scale)))
+    (if zh-hanja
+        (add-to-list 'face-font-rescale-alist `(,zh-hanja . ,scale)))))
