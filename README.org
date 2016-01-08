@@ -1,0 +1,122 @@
+#+TITLE: Korean layer
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../../css/readtheorg.css" />
+
+[[file:images/Dokdo_is_our_torritory.png]]
+
+* Table of Contents                                         :TOC_4_org:noexport:
+ - [[Description][Description]]
+ - [[Install][Install]]
+   - [[Layer][Layer]]
+   - [[Configuration][Configuration]]
+     - [[configure fonts][configure fonts]]
+       - [[install fonts][install fonts]]
+       - [[configure fonts][configure fonts]]
+     - [[Configure the Default Input Method][Configure the Default Input Method]]
+     - [[configure modeline][configure modeline]]
+     - [[Configure lunar calendar][Configure lunar calendar]]
+     - [[spell checking][spell checking]]
+       - [[Install programs][Install programs]]
+       - [[configuration][configuration]]
+
+* Description
+This Layer adds Korean related packages:
+- korea-util: utilities for Korean.
+- [[https://github.com/TheBB/spaceline.git][spaceline]]: Modeline configuration library for powerline.
+- [[https://github.com/cinsk/cal-korea-x.git][cal-korea-x]]: Utilities for korean lunar calendar.
+- [[https://github.com/atykhonov/google-translate][google-translate]]: Emacs interface to Google Translate.
+- ispell: spelling check.
+
+* Install
+** Layer
+To use this configuration layer, add it to your =~/.spacemacs=. You will need to
+add =korean= to the existing =dotspacemacs-configuration-layers= list in this
+file.
+
+** Configuration
+*** configure fonts
+**** install fonts
+- [[http://hangeul.naver.com/font][Nanum]]: defualt Yet-Hangul font
+- [[http://dev.naver.com/projects/nanumfont/][NanumGothicCoding]]: default Hangul mono font
+- [[http://dev.naver.com/projects/d2coding][D2Coding]]: Hangul mono fonts (optional)
+- [[http://wiki.ktug.org/wiki/wiki.php/%ED%95%A8%EC%B4%88%EB%A1%AC%EC%B2%B4LVT][Hamchorom-LVT]]: for support yet-Hangul (optional)
+- [[http://save.sys.t.u-tokyo.ac.jp/~yusa/fonts/ricty.html][Ricty]]: Japanese mono fonts (optional)
+- [[http://wenq.org/wqy2/index.cgi?ZenHei][WenQuanYi]]: Chinese mono fonts (optional)
+
+**** configure fonts
+We use different font of latin chars and CJK chars, it has some problems.
+The space between letters do not match each other. If we do not solve this problem,
+we will see ugly rendering table.
+
+We will see perfectly rendering table by the following settings.
+The following settings are tested with [[http://dejavu-fonts.org/wiki/Main_Page][DejaVu Sans Mono]].
+The value of =scale= is referenced in [[http://crazia.tistory.com/entry/Emacs-24x-%EB%B2%84%EC%A0%BC-%ED%95%9C%EA%B8%80-%ED%8F%B0%ED%8A%B8-%EC%84%A4%EC%A0%95-orgmode-%EC%9D%98-%ED%95%9C%EA%B8%80-%ED%85%8C%EC%9D%B4%EB%B8%94-%EA%B9%A8%EC%A7%80%EC%A7%80-%EC%95%8A%EA%B2%8C-%EB%B3%B4%EC%9D%B4%EA%B8%B0][this page]].
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default
+   dotspacemacs-configuration-layers
+   '(
+     (korean :variables
+             korean-default-fonts (list :ko-yethangul "HCR Batang LVT"
+                                        :ko-hangul    "D2Coding"
+                                        :ja-kana      "Ricty Discord"          ; optional
+                                        :zh-hanja     "WenQuanYi Zen Hei Mono" ; optional
+                                        :scale        1.2307692307692308))
+     ))
+#+END_SRC
+
+*** Configure the Default Input Method
+The default Korean input method is =do-beol-sik=, if you are =se-beol-sik= user,
+you could set the variable =korean-default-input-method= to =3f= or =390=:
+
+#+begin_src emacs-lisp
+  (setq-default
+   dotspacemacs-configuration-layers
+   '(
+     (korean :variables korean-default-input-method '3f)
+     ))
+#+end_src
+
+- se-beol-final
+[[file:images/391.svg]]
+
+- se-beol-390
+[[file:images/390.png]]
+
+*** configure modeline
+The position of input method modeline lighter is on right-side.
+It will breaks layout when activate input method.
+So I changed it to front of minor-mode on left-side.
+If you want, should set =korean-input-method-modeline-position= to =left=.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default
+   dotspacemacs-configuration-layers
+   '(
+     (korean :variables korean-input-method-modeline-position 'left)
+     ))
+#+END_SRC
+
+*** Configure lunar calendar
+The day of week start is Sunday by default.
+if you want Monday, should set the following to =dotspacemacs/user-config=.
+
+#+BEGIN_SRC emacs-lisp
+  (setq calendar-week-start-day 1)
+#+END_SRC
+
+*** spell checking
+**** Install programs
+- [[http://hunspell.sourceforge.net/][hunspell]]: spell checker - an improved replacement for myspell in OOo.
+- [[https://github.com/changwoo/hunspell-dict-ko][hunspell-dict-ko]]: Korean spellchecking dictionary for Hunspell.
+
+**** configuration
+If you want spell checking for Germany, should set the following to =dotspacemacs/user-config=.
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'ispell-local-dictionary-alist
+               '("de_DE"
+                 "[a-zäöüßA-ZÄÖÜ]" "[^a-zäöüßA-ZÄÖÜ]" "[']" t
+                  ("-d" "de_DE")
+                  nil utf-8))
+
+  (korean/add-ispell-dictionary "de_DE")
+#+END_SRC

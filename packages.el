@@ -15,9 +15,14 @@
 ;; - powerline에서 spaceline으로 대체됨에 따라 관련 부분 수정
 ;; - core-display-init.el의 도입으로 starter-kit에서 가져와 사용하던 daemon관련 부분을
 ;;  `spacemacs|do-after-display-system-init'으로 교체
-;; 11-01-2015
+;; 06-01-2016
 ;; - `input-method'가 추가되었지만 위치가 마음에 들지 않으므로,
 ;;  왼쪽의 마이너 모드 앞에 위치시켜 두었다.
+;; 08-01-2016
+;; - `ispell' 설정이 적용되지 않던 문제 수정/ 함수 추가
+;; - 글꼴 관련 부분 일부 수정 (중국 한자나 일본 가나는 옵션으로)
+;; - readme.org 작성 - 말도 안되는 영어로 써 봤다
+
 
 ;;; packages
 (setq korean-packages
@@ -43,11 +48,13 @@
 (defun korean/init-korea-util ()
   (use-package korea-util
     :init
-    (when (or (string= korean-keyboard-type "3f")
-              (string= korean-keyboard-type "390"))
-      (setq default-korean-keyboard korean-keyboard-type)
-      (setq-default default-input-method (concat "korean-hangul" korean-keyboard-type))
-      (set-input-method (concat "korean-hangul" korean-keyboard-type)))
+    (when (or (eq korean-default-input-method '3f)
+              (eq korean-default-input-method '390))
+      (setq default-korean-keyboard (symbol-name korean-default-input-method))
+      (let ((im (format "korean-hangul%s"
+                        (symbol-name korean-default-input-method))))
+        (setq-default default-input-method im)
+        (set-input-method im)))
 
     (let ((ims '("" "3f" "390")))
       (setq im-ring (make-ring (length ims)))
@@ -60,6 +67,7 @@
         (setq-default default-input-method (concat "korean-hangul" im))
         (setq default-korean-keyboard im)
         (set-input-method (concat "korean-hangul" im))
+        ;; TODO show keyboard layout like virtual keyboard?
         ;; (if (or (string= "3f" im)
         ;;         (string= "390" im))
         ;;     (progn
@@ -85,7 +93,7 @@
       (korean//deactivate-input-method))
     ))
 
-;;; powerline indicator mule-info
+;;; modeline
 (defun korean/post-init-spaceline ()
   (add-hook 'input-method-activate-hook
             (lambda()
@@ -93,7 +101,7 @@
                   (setq current-input-method-title
                         (replace-regexp-in-string "한" "" current-input-method-title)))))
 
-  (when (eq korean-im-position 'left)
+  (when (eq korean-input-method-modeline-position 'left)
     ;; FIXME check
     (delq (nth 3 spaceline-right) spaceline-right)
     (setf (car (nth 6 spaceline-left))
@@ -152,52 +160,49 @@
     (add-hook 'today-visible-calendar-hook 'calendar-mark-holidays)))
 
 ;;; spell check
-(defun korean/post-init-ispell ()
-  (when (executable-find "hunspell")
-    (setq-default ispell-program-name "hunspell")
-    (setq ispell-really-hunspell t))
+(defun korean/init-ispell ()
+  (use-package ispell
+    :init
+    (when (executable-find "hunspell")
+      (setq-default ispell-program-name "hunspell")
+      (setq ispell-really-hunspell t))
 
-  (setq ispell-local-dictionary-alist
-        '(("ko_KR"
-           "[가-힣]" "[^가-힣]" "[0-9a-zA-Z]" nil
-           ("-d" "ko_KR")
-           nil utf-8)
-          ("en_US"
-           "[A-Za-z]" "[^A-Za-z]" "[0-9a-zA-Z]" nil
-           ("-d" "en_US")
-           nil utf-8)
-          ;; ("de_DE"
-          ;;  "[a-zäöüßA-ZÄÖÜ]" "[^a-zäöüßA-ZÄÖÜ]" "[']" t
-          ;;  ("-d" "de_DE")
-          ;;  nil utf-8)
-          ))
+    (setq ispell-local-dictionary-alist
+          '(("ko_KR"
+             "[가-힣]" "[^가-힣]" "[0-9a-zA-Z]" nil
+             ("-d" "ko_KR")
+             nil utf-8)
+            ("en_US"
+             "[A-Za-z]" "[^A-Za-z]" "[0-9a-zA-Z]" nil
+             ("-d" "en_US")
+             nil utf-8)))
 
-  (setq ispell-dictionary "en_US")
-  (setq ispell-local-dictionary "en_US")
+    (setq ispell-dictionary "en_US")
+    (setq ispell-local-dictionary "en_US")
 
-  (let ((langs '("en_US" "ko_KR")))
-    (setq lang-ring (make-ring (length langs)))
-    (dolist (elem langs) (ring-insert lang-ring elem)))
-  (defun cycle-ispell-languages ()
-    (interactive)
-    (let ((lang (ring-ref lang-ring -1)))
-      (ring-insert lang-ring lang)
-      (ispell-change-dictionary lang t)))
+    (defun korean/add-ispell-dictionary (new-dict)
+      ""
+      (interactive)
+      (let ((size (1+ (ring-size lang-ring)))
+            (old-dict (ring-elements lang-ring)))
+        (setq lang-ring (make-ring size))
+        (dolist (dict old-dict)
+          (ring-insert lang-ring dict))
+        (ring-insert lang-ring new-dict)))
 
-  ;; TODO : 바꾸자
-  (bind-keys ("C-S-SPC" . cycle-ispell-languages)
-             ;; ("M-D"     . ispell-region)
-             ("M-$"     . ispell-word))
+    (let ((langs '("en_US" "ko_KR")))
+      (setq lang-ring (make-ring (length langs)))
+      (dolist (elem langs) (ring-insert lang-ring elem)))
+    (defun cycle-ispell-languages ()
+      (interactive)
+      (let ((lang (ring-ref lang-ring -1)))
+        (ring-insert lang-ring lang)
+        (ispell-change-dictionary lang t)))
 
-  (defun korean/toggle-company-ispell ()
-    (interactive)
-    (cond
-     ((memq 'company-ispell company-backends)
-      (setq company-backends (delete 'company-ispell company-backends))
-      (message "company-ispell disabled."))
-     (t
-      (add-to-list 'company-ispell 'company-backends)
-      (message "company-ispell enabled.")))))
+    ;; TODO: spacemacs와 어울리도록 바꿀 필요가 있다.
+    (bind-keys ("C-S-SPC" . cycle-ispell-languages)
+               ;; ("M-D"     . ispell-region)
+               ("M-$"     . ispell-word))))
 
 ;;; translation
 (defun korean/post-init-google-translate ()
@@ -224,9 +229,6 @@
                      (setq s (point))
                      (forward-sentence)
                      (buffer-substring s (point)))))))
-    ;; (let* ((asciip (string-match
-    ;;                 (format "\\`[%s]+\\'" google-translate-english-chars)
-    ;;                 string)))
     (let* ((lang (cond
                   ((string-match "[가-힣]" string)
                    "ko")
