@@ -49,7 +49,8 @@ we will see ugly rendering table.
 
 We will see perfectly rendering table by the following settings.
 The following settings are tested with [[http://dejavu-fonts.org/wiki/Main_Page][DejaVu Sans Mono]].
-The value of =scale= is referenced in [[http://crazia.tistory.com/entry/Emacs-24x-%EB%B2%84%EC%A0%BC-%ED%95%9C%EA%B8%80-%ED%8F%B0%ED%8A%B8-%EC%84%A4%EC%A0%95-orgmode-%EC%9D%98-%ED%95%9C%EA%B8%80-%ED%85%8C%EC%9D%B4%EB%B8%94-%EA%B9%A8%EC%A7%80%EC%A7%80-%EC%95%8A%EA%B2%8C-%EB%B3%B4%EC%9D%B4%EA%B8%B0][this page]].
+when the value of =scale= is =1.2=, we can see the best result in 14 and 15 size,
+and =1.2307692307692308= is the best in 13 size. this value reference in [[http://crazia.tistory.com/entry/Emacs-24x-%EB%B2%84%EC%A0%BC-%ED%95%9C%EA%B8%80-%ED%8F%B0%ED%8A%B8-%EC%84%A4%EC%A0%95-orgmode-%EC%9D%98-%ED%95%9C%EA%B8%80-%ED%85%8C%EC%9D%B4%EB%B8%94-%EA%B9%A8%EC%A7%80%EC%A7%80-%EC%95%8A%EA%B2%8C-%EB%B3%B4%EC%9D%B4%EA%B8%B0][this page]].
 
 #+BEGIN_SRC emacs-lisp
   (setq-default
@@ -60,7 +61,7 @@ The value of =scale= is referenced in [[http://crazia.tistory.com/entry/Emacs-24
                                         :ko-hangul    "D2Coding"
                                         :ja-kana      "Ricty Discord"          ; optional
                                         :zh-hanja     "WenQuanYi Zen Hei Mono" ; optional
-                                        :scale        1.2307692307692308))
+                                        :scale        1.2))
      ))
 #+END_SRC
 
@@ -84,7 +85,7 @@ you could set the variable =korean-default-input-method= to =3f= or =390=:
 
 *** configure modeline
 The position of input method modeline lighter is on right-side.
-It will breaks layout when activate input method.
+The modeline layout will be break when activate input method.
 So I changed it to front of minor-mode on left-side.
 If you want, should set =korean-input-method-modeline-position= to =left=.
 
@@ -112,11 +113,8 @@ if you want Monday, should set the following to =dotspacemacs/user-config=.
 **** configuration
 If you want spell checking for Germany, should set the following to =dotspacemacs/user-config=.
 #+BEGIN_SRC emacs-lisp
-  (add-to-list 'ispell-local-dictionary-alist
-               '("de_DE"
-                 "[a-zäöüßA-ZÄÖÜ]" "[^a-zäöüßA-ZÄÖÜ]" "[']" t
-                  ("-d" "de_DE")
-                  nil utf-8))
-
-  (korean/add-ispell-dictionary "de_DE")
+  (korean//ispell-add-dictionary '("de_DE"
+                                   "[a-zäöüßA-ZÄÖÜ]" "[^a-zäöüßA-ZÄÖÜ]" "[']" t
+                                   ("-d" "de_DE")
+                                   nil utf-8))
 #+END_SRC

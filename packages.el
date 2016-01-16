@@ -11,17 +11,23 @@
 ;;; License: GPLv3
 
 ;;; Changlog:
-;; 05-01-2016
-;; - powerline에서 spaceline으로 대체됨에 따라 관련 부분 수정
-;; - core-display-init.el의 도입으로 starter-kit에서 가져와 사용하던 daemon관련 부분을
-;;  `spacemacs|do-after-display-system-init'으로 교체
-;; 06-01-2016
-;; - `input-method'가 추가되었지만 위치가 마음에 들지 않으므로,
-;;  왼쪽의 마이너 모드 앞에 위치시켜 두었다.
+;; 13-01-2016
+;; - input-method 위치 조정 코드 단순화
+;; - `ispell' 사전 추가 함수 개선
+
 ;; 08-01-2016
 ;; - `ispell' 설정이 적용되지 않던 문제 수정/ 함수 추가
 ;; - 글꼴 관련 부분 일부 수정 (중국 한자나 일본 가나는 옵션으로)
 ;; - readme.org 작성 - 말도 안되는 영어로 써 봤다
+
+;; 06-01-2016
+;; - `input-method'가 추가되었지만 위치가 마음에 들지 않으므로,
+;;  왼쪽의 마이너 모드 앞에 위치시켜 두었다.
+
+;; 05-01-2016
+;; - powerline에서 spaceline으로 대체됨에 따라 관련 부분 수정
+;; - core-display-init.el의 도입으로 starter-kit에서 가져와 사용하던 daemon관련 부분을
+;;  `spacemacs|do-after-display-system-init'으로 교체
 
 
 ;;; packages
@@ -57,13 +63,13 @@
         (set-input-method im)))
 
     (let ((ims '("" "3f" "390")))
-      (setq im-ring (make-ring (length ims)))
-      (dolist (e ims) (ring-insert im-ring e)))
+      (setq korean-input-methods (make-ring (length ims)))
+      (dolist (im ims) (ring-insert korean-input-methods im)))
 
-    (defun korean/cycle-korean-input-method ()
+    (defun korean/cycle-input-methods ()
       (interactive)
-      (let ((im (ring-ref im-ring -1)))
-        (ring-insert im-ring im)
+      (let ((im (ring-ref korean-input-methods -1)))
+        (ring-insert korean-input-methods im)
         (setq-default default-input-method (concat "korean-hangul" im))
         (setq default-korean-keyboard im)
         (set-input-method (concat "korean-hangul" im))
@@ -80,7 +86,7 @@
 
     ;; TODO: 콘솔에서 `S-SPC'가 동작하지 않는다.
     (global-set-key [?\S-\ ] 'toggle-korean-input-method)
-    (global-set-key [?\C-\\] 'korean/cycle-korean-input-method)
+    (global-set-key [?\C-\\] 'korean/cycle-input-methods)
 
     (defun korean//deactivate-input-method ()
       (and current-input-method
@@ -91,7 +97,10 @@
     (defadvice isearch-mode (before turn-off-im activate)
       "turn off input method isearch-mode."
       (korean//deactivate-input-method))
-    ))
+
+    (when (configuration-layer/package-usedp 'visual-regexp)
+      (with-eval-after-load "visual-regexp"
+        (add-hook 'vr/initialize-hook #'korean//deactivate-input-method)))))
 
 ;;; modeline
 (defun korean/post-init-spaceline ()
@@ -102,15 +111,12 @@
                         (replace-regexp-in-string "한" "" current-input-method-title)))))
 
   (when (eq korean-input-method-modeline-position 'left)
-    ;; FIXME check
     (delq (nth 3 spaceline-right) spaceline-right)
     (setf (car (nth 6 spaceline-left))
-          (append (list 'input-method
-                        (caar (nth 6 spaceline-left))
-                        (cdar (nth 6 spaceline-left)))))))
+          (cons 'input-method (car (nth 6 spaceline-left))))))
 
 ;;; calendar
-;; TODO 대체휴일
+;; TODO 대체휴일 - 설날/한가위/어린이날
 (defun korean/init-cal-korea-x ()
   (use-package cal-korea-x
     :init
@@ -180,27 +186,31 @@
     (setq ispell-dictionary "en_US")
     (setq ispell-local-dictionary "en_US")
 
-    (defun korean/add-ispell-dictionary (new-dict)
-      ""
-      (interactive)
-      (let ((size (1+ (ring-size lang-ring)))
-            (old-dict (ring-elements lang-ring)))
-        (setq lang-ring (make-ring size))
-        (dolist (dict old-dict)
-          (ring-insert lang-ring dict))
-        (ring-insert lang-ring new-dict)))
+    (let ((dicts '("en_US" "ko_KR")))
+      (setq ispell-dictionaries (make-ring (length dicts)))
+      (dolist (dict dicts)
+        (ring-insert ispell-dictionaries dict)))
 
-    (let ((langs '("en_US" "ko_KR")))
-      (setq lang-ring (make-ring (length langs)))
-      (dolist (elem langs) (ring-insert lang-ring elem)))
-    (defun cycle-ispell-languages ()
+    (defun ispell-cycle-dictionaries ()
       (interactive)
-      (let ((lang (ring-ref lang-ring -1)))
-        (ring-insert lang-ring lang)
-        (ispell-change-dictionary lang t)))
+      (let ((dict (ring-ref ispell-dictionaries -1)))
+        (ring-insert ispell-dictionaries dict)
+        (ispell-change-dictionary dict t)))
+
+    (defun korean//ispell-add-dictionary (dict)
+      ""
+      (let ((dict-length (1+ (ring-size ispell-dictionaries)))
+            (old-dicts   (ring-elements ispell-dictionaries))
+            (new-dict    (car dict)))
+        (setq ispell-dictionaries (make-ring dict-length))
+        (dolist (dict old-dicts)
+          (ring-insert ispell-dictionaries dict))
+        (ring-insert ispell-dictionaries new-dict))
+
+      (add-to-list 'ispell-local-dictionary-alist dict))
 
     ;; TODO: spacemacs와 어울리도록 바꿀 필요가 있다.
-    (bind-keys ("C-S-SPC" . cycle-ispell-languages)
+    (bind-keys ("C-S-SPC" . ispell-cycle-dictionaries)
                ;; ("M-D"     . ispell-region)
                ("M-$"     . ispell-word))))
 
