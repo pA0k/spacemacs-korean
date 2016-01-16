@@ -11,6 +11,10 @@
 ;;; License: GPLv3
 
 ;;; Changlog:
+;; 17-01-2016
+;; - 문서에 변경된 글꼴 관련 변수 반영
+;; - `spaceline-left' 바뀐 부분 반영
+
 ;; 13-01-2016
 ;; - input-method 위치 조정 코드 단순화
 ;; - `ispell' 사전 추가 함수 개선
@@ -42,12 +46,12 @@
 
 ;;; fonts
 (spacemacs|do-after-display-system-init
- ;; 알파벳이 네모로 나오는 경우가 있더라. Source Code Pro를 제외하고 대부분이...
- ;; 인쇄 품질은 잘 모르겠고, 우선 눈에 더 편한 글꼴이 DejaVu Sans Mono라서...
- ;; 소스코드프로는 자체에 고정폭/가변폭 둘 다 있기 때문에 문제가 없는 것이고,
- ;; 그 외의 글꼴들은 그렇지 못 하기에 생기는 문제인 듯 하다.
+ ;; Source Code Pro 보다 DejaVu Sans Mono가 더 익숙해서 바꾸고 보니,
+ ;; 일부 알파벳이 네모로 나온다. 대표적으로 볼 일 없는 첫 화면과 info 문서가 그렇다.
+ ;; 이 문제는 아래 두 줄이면 해결된다.
  (set-face-attribute 'variable-pitch nil
                      :family (car dotspacemacs-default-font))
+
  (korean//set-cjk-fonts korean-default-fonts))
 
 ;;; input method
@@ -84,7 +88,7 @@
         ;;        (delete-window (get-buffer-window "*Help*"))))
         ))
 
-    ;; TODO: 콘솔에서 `S-SPC'가 동작하지 않는다.
+    ;; TODO: `S-SPC' not working in terminal.
     (global-set-key [?\S-\ ] 'toggle-korean-input-method)
     (global-set-key [?\C-\\] 'korean/cycle-input-methods)
 
@@ -111,7 +115,7 @@
                         (replace-regexp-in-string "한" "" current-input-method-title)))))
 
   (when (eq korean-input-method-modeline-position 'left)
-    (delq (nth 3 spaceline-right) spaceline-right)
+    (delq (nth 4 spaceline-right) spaceline-right)
     (setf (car (nth 6 spaceline-left))
           (cons 'input-method (car (nth 6 spaceline-left))))))
 
@@ -191,14 +195,15 @@
       (dolist (dict dicts)
         (ring-insert ispell-dictionaries dict)))
 
-    (defun ispell-cycle-dictionaries ()
+    (defun korean/ispell-cycle-dictionaries ()
+      ""
       (interactive)
       (let ((dict (ring-ref ispell-dictionaries -1)))
         (ring-insert ispell-dictionaries dict)
         (ispell-change-dictionary dict t)))
 
     (defun korean//ispell-add-dictionary (dict)
-      ""
+      "Easy to add ispell dictionary."
       (let ((dict-length (1+ (ring-size ispell-dictionaries)))
             (old-dicts   (ring-elements ispell-dictionaries))
             (new-dict    (car dict)))
@@ -210,7 +215,7 @@
       (add-to-list 'ispell-local-dictionary-alist dict))
 
     ;; TODO: spacemacs와 어울리도록 바꿀 필요가 있다.
-    (bind-keys ("C-S-SPC" . ispell-cycle-dictionaries)
+    (bind-keys ("C-S-SPC" . korean/ispell-cycle-dictionaries)
                ;; ("M-D"     . ispell-region)
                ("M-$"     . ispell-word))))
 
@@ -218,11 +223,11 @@
 (defun korean/post-init-google-translate ()
   (autoload 'google-translate-translate "google-translate-core-ui" "google-translate-translate" t t)
 
-  (setq google-translate-default-source-language "En")
+  (setq google-translate-default-source-language "en")
   (setq google-translate-default-target-language "ko")
 
   (defun google-translate-to-korean (&optional string)
-    "문장 혹은 선택영역을 자동으로 번역한다."
+    "Translate sentence or region automatically without language selection prompt."
     ;; TODO: 한자와 가나가 섞여 있으면 일본어로, 한자만 있다면 중국어로 인식하도록
     (interactive)
     (setq string

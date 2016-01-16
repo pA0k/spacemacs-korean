@@ -57,16 +57,16 @@ and =1.2307692307692308= is the best in 13 size. this value reference in [[http:
    dotspacemacs-configuration-layers
    '(
      (korean :variables
-             korean-default-fonts (list :ko-yethangul "HCR Batang LVT"
-                                        :ko-hangul    "D2Coding"
-                                        :ja-kana      "Ricty Discord"          ; optional
-                                        :zh-hanja     "WenQuanYi Zen Hei Mono" ; optional
-                                        :scale        1.2))
+             korean-default-fonts '("D2Coding"
+                                    :ko-yethangul "HCR Batang LVT"
+                                    :ja-kana      "Ricty Discord"
+                                    :zh-hanja     "WenQuanYi Zen Hei Mono"
+                                    :scale        1.2))
      ))
 #+END_SRC
 
 *** Configure the Default Input Method
-The default Korean input method is =do-beol-sik=, if you are =se-beol-sik= user,
+The default Korean input method is =du-beol-sik=, if you are =se-beol-sik= user,
 you could set the variable =korean-default-input-method= to =3f= or =390=:
 
 #+begin_src emacs-lisp
