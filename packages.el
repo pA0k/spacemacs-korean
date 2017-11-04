@@ -1,130 +1,44 @@
 ;;; packages.el --- korean Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2014 Sylvain Benner
-;; Copyright (c) 2014-2015 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2017 Sylvain Benner & Contributors
 ;;
-;; Author: Sylvain Benner <sylvain.benner@gmail.com>
-;; URL: https://github.com/syl20bnr/spacemacs
+;; Author: Byungsu Seo <pa0k.su@gmail.com>
+;; URL: https://github.com/pA0k/spacemacs-korean
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
 ;;; License: GPLv3
 
-;;; Changlog:
-;; 29-06-2016
-;; - spaceline의 변경점 반영
-;;
-
-;; 19-01-2016
-;; - new function `korean/popup-translation', and change `google-translate-to-korean' to non-interactive
-
-;; 17-01-2016
-;; - 문서에 변경된 글꼴 관련 변수 반영
-;; - `spaceline' 바뀐 부분 반영
-
-;; 13-01-2016
-;; - input-method 위치 조정 코드 단순화
-;; - `ispell' 사전 추가 함수 개선
-
-;; 08-01-2016
-;; - `ispell' 설정이 적용되지 않던 문제 수정/ 함수 추가
-;; - 글꼴 관련 부분 일부 수정 (중국 한자나 일본 가나는 옵션으로)
-;; - readme.org 작성 - 말도 안되는 영어로 써 봤다
-
-;; 06-01-2016
-;; - `input-method'가 추가되었지만 위치가 마음에 들지 않으므로,
-;;  왼쪽의 마이너 모드 앞에 위치시켜 두었다.
-
-;; 05-01-2016
-;; - powerline에서 spaceline으로 대체됨에 따라 관련 부분 수정
-;; - core-display-init.el의 도입으로 starter-kit에서 가져와 사용하던 daemon관련 부분을
-;;  `spacemacs|do-after-display-system-init'으로 교체
-
 ;;; Code:
 ;;;; Require packages
-(setq korean-packages
-      '(
-        (korea-util :location built-in)
-        spaceline
-        (cal-korea-x :location (recipe :fetcher github :repo "cinsk/cal-korea-x"))
-        google-translate
-        (ispell :location built-in)
-        ))
+(defconst korean-packages
+  '(
+    (imh-mode :location local :toggle show-keyboard-layout)
+    (cal-korea-x :location (recipe :fetcher github :repo "cinsk/cal-korea-x"))
+    google-translate
+    (ispell :location built-in)
+    evil
+    popwin
+    ))
 
 ;;;; Configrations
 
 ;;;;; input method
-(defun korean/init-korea-util ()
-  (use-package korea-util
-    :init
-    (progn
-      (when (or (eq korean-default-input-method '3f)
-                (eq korean-default-input-method '390))
-        (setq default-korean-keyboard (symbol-name korean-default-input-method))
-        (let ((im (format "korean-hangul%s"
-                          (symbol-name korean-default-input-method))))
-          (setq-default default-input-method im)
-          (set-input-method im)))
+(defun korean/init-imh-mode ()
+  (use-package imh-mode
+    :config (imh-mode 1)))
 
-      (let ((ims '("" "3f" "390")))
-        (setq korean-input-methods (make-ring (length ims)))
-        (dolist (im ims) (ring-insert korean-input-methods im)))
+(defun korean/post-init-evil ()
+  (advice-add 'evil-normal-state :before #'turn-off-input-method)
 
-      (defun korean/cycle-input-methods ()
-        (interactive)
-        (let ((im (ring-ref korean-input-methods -1)))
-          (ring-insert korean-input-methods im)
-          (setq-default default-input-method (concat "korean-hangul" im))
-          (setq default-korean-keyboard im)
-          (set-input-method (concat "korean-hangul" im))))
-
-      ;; TODO show keyboard layout like virtual keyboard?
-      ;; (defun korean//show-keyboard-layout (input-method)
-      ;;   (if (or (string= "3f" im)
-      ;;           (string= "390" im))
-      ;;       (progn
-      ;;         (quail-show-keyboard-layout (concat "korean-hangul" im))
-      ;;         (and (eq (current-buffer) (get-buffer-window "*Help*"))
-      ;;              (call-interactively 'other-window)))
-      ;;     (and (get-buffer-window "*Help*")
-      ;;          (delete-window (get-buffer-window "*Help*")))))
-
-      (defun korean//deactivate-input-method ()
-        (and current-input-method
-             (deactivate-input-method)))
-
-      (add-hook 'minibuffer-with-setup-hook #'korean//deactivate-input-method)
-      (add-hook 'helm-before-initialize-hook #'korean//deactivate-input-method)
-      (advice-add 'save-buffers-kill-emacs :before #'korean//deactivate-input-method)
-      (defadvice isearch-mode (before turn-off-im activate)
-        "turn off input method isearch-mode."
-        (korean//deactivate-input-method))
-
-      (when (configuration-layer/package-usedp 'visual-regexp)
-        (with-eval-after-load "visual-regexp"
-          (add-hook 'vr/initialize-hook #'korean//deactivate-input-method)))
-
-      (when (configuration-layer/package-usedp 'swiper)
-        (with-eval-after-load "swiper"
-          (advice-add 'swiper :before #'korean//deactivate-input-method)))
-
-      ;; TODO: `S-SPC' not working in terminal.
-      (global-set-key [?\S-\ ] 'toggle-korean-input-method)
-      (global-set-key [?\C-\\] 'korean/cycle-input-methods))))
-
-;;;;; modeline
-(defun korean/post-init-spaceline ()
-  (add-hook 'input-method-activate-hook
-            (lambda ()
-              (if (and (display-graphic-p) current-input-method)
-                  (setq current-input-method-title
-                        (replace-regexp-in-string "한" "" current-input-method-title)))))
-
-  (when (eq korean-input-method-modeline-position 'left)
-    (delete 'input-method (assq 'main spaceline--mode-lines))
-    (unless (eq 'input-method (car (nth 7 (cadr (assq 'main spaceline--mode-lines)))))
-      (push 'input-method (nth 7 (cadr (assq 'main spaceline--mode-lines)))))
-    (spaceline-install)))
+  (mapcar (lambda (mode)
+            (let ((keymap (intern (format "evil-%s-state-map" mode))))
+              (define-key (symbol-value keymap) [?\S- ]
+                #'(lambda () (interactive)
+                    (message
+                     (format "Input method is disabled in %s state." evil-state))))))
+          '(motion normal visual))
+  )
 
 ;;;;; calendar
 ;; TODO 대체휴일 - 설날/한가위/어린이날
@@ -226,9 +140,9 @@
     (progn
       ;; TODO: spacemacs와 어울리도록 바꿀 필요가 있다.
       (bind-keys :map ispell-minor-keymap
-        ("C-S-SPC" . korean/ispell-cycle-dictionaries)
-        ;; ("M-D"     . ispell-region)
-        ("M-$"     . ispell-word)))))
+                 ("C-S-SPC" . korean/ispell-cycle-dictionaries)
+                 ;; ("M-D"     . ispell-region)
+                 ("M-$"     . ispell-word)))))
 
 ;;;;; translation
 (defun korean/post-init-google-translate ()
@@ -293,5 +207,7 @@
   (global-set-key    "\C-ct" 'korean/popup-translation)
   (evil-leader/set-key "xgg" 'korean/popup-translation))
 
-   
+(defun korean/post-init-popwin ()
+  (push '("*Keyboard layout*" :dedicated t :position bottom :stick t :noselect t :height 13) popwin:special-display-config))
+
 ;;; packages.el ends here.
