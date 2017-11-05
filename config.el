@@ -20,7 +20,7 @@
     :korean            "D2Coding"
     :korean-yethangul  "HCR Dotum"
     :chinese           "WenQuanYi Zen Hei Mono"
-    :japanese          "Migu 1M"))
+    :japanese          "Migu 2M"))
 
 (setq font-scale-alist
   '((9    . 10.5)

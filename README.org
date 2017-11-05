@@ -4,19 +4,18 @@
 [[file:images/Dokdo_is_our_torritory.png]]
 
 * Table of Contents                                         :TOC_4_org:noexport:
- - [[Description][Description]]
- - [[Install][Install]]
-   - [[Layer][Layer]]
-   - [[Configuration][Configuration]]
-     - [[configure fonts][configure fonts]]
-       - [[install fonts][install fonts]]
-       - [[configure fonts][configure fonts]]
-     - [[Configure the Default Input Method][Configure the Default Input Method]]
-     - [[configure modeline][configure modeline]]
-     - [[Configure lunar calendar][Configure lunar calendar]]
-     - [[spell checking][spell checking]]
-       - [[Install programs][Install programs]]
-       - [[configuration][configuration]]
+- [[Description][Description]]
+- [[Install][Install]]
+  - [[Layer][Layer]]
+  - [[Configuration][Configuration]]
+    - [[configure fonts][configure fonts]]
+      - [[install fonts][install fonts]]
+      - [[configure fonts][configure fonts]]
+    - [[Configure the Default Input Method][Configure the Default Input Method]]
+    - [[imh-mode - show keyboard layout like virtual keyboard][imh-mode - show keyboard layout like virtual keyboard]]
+    - [[spell checking][spell checking]]
+      - [[require packages][require packages]]
+- [[Keybinding][Keybinding]]
 
 * Description
 This Layer adds Korean related packages:
@@ -35,12 +34,12 @@ file.
 ** Configuration
 *** configure fonts
 **** install fonts
-- [[http://hangeul.naver.com/font][Nanum]]: defualt Yet-Hangul font
-- [[http://dev.naver.com/projects/nanumfont/][NanumGothicCoding]]: default Hangul mono font
-- [[http://dev.naver.com/projects/d2coding][D2Coding]]: Hangul mono fonts (optional)
-- [[http://wiki.ktug.org/wiki/wiki.php/%ED%95%A8%EC%B4%88%EB%A1%AC%EC%B2%B4LVT][Hamchorom-LVT]]: for support yet-Hangul (optional)
-- [[http://save.sys.t.u-tokyo.ac.jp/~yusa/fonts/ricty.html][Ricty]]: Japanese mono fonts (optional)
-- [[http://wenq.org/wqy2/index.cgi?ZenHei][WenQuanYi]]: Chinese mono fonts (optional)
+     - [[http://hangeul.naver.com/font][Nanum]]: defualt Yet-Hangul font
+     - [[http://dev.naver.com/projects/nanumfont/][NanumGothicCoding]]: default Hangul mono font
+     - [[http://dev.naver.com/projects/d2coding][D2Coding]]: Hangul mono fonts (optional)
+     - [[https://www.hancom.com/cs_center/csDownload.do?div=15&ver=139][Hamchorom]]: for support yet-Hangul (optional)
+     - [[http://mix-mplus-ipa.osdn.jp/migu/][migu]]: Japanese mono fonts (optional)
+     - [[http://wenq.org/wqy2/index.cgi?ZenHei][WenQuanYi]]: Chinese mono fonts (optional)
 
 **** configure fonts
 We use different font of latin chars and CJK chars, it has some problems.
@@ -57,11 +56,11 @@ and =1.2307692307692308= is the best in 13 size. this value reference in [[http:
    dotspacemacs-configuration-layers
    '(
      (korean :variables
-             korean-default-fonts '("D2Coding"
-                                    :ko-yethangul "HCR Batang LVT"
-                                    :ja-kana      "Ricty Discord"
-                                    :zh-hanja     "WenQuanYi Zen Hei Mono"
-                                    :scale        1.2))
+             korean-default-fonts '(,(car dotspacemacs-defualt-font)
+                                    :korean           "D2Coding"
+                                    :korean-yethangul "HCR Dotum"
+                                    :chinese          "Migu 2M"
+                                    :japanese         "WenQuanYi Zen Hei Mono"))
      ))
 #+END_SRC
 
@@ -73,7 +72,9 @@ you could set the variable =korean-default-input-method= to =3f= or =390=:
   (setq-default
    dotspacemacs-configuration-layers
    '(
-     (korean :variables korean-default-input-method '3f)
+     (korean :variables
+             korean-want-ims '("" "3f")   ; Dubeol-sik and Sebeol-sik
+             default-korean-keyboard '3f)
      ))
 #+end_src
 
@@ -83,38 +84,28 @@ you could set the variable =korean-default-input-method= to =3f= or =390=:
 - se-beol-390
 [[file:images/390.png]]
 
-*** configure modeline
-The position of input method modeline lighter is on right-side.
-The modeline layout will be break when activate input method.
-So I changed it to front of minor-mode on left-side.
-If you want, should set =korean-input-method-modeline-position= to =left=.
-
-#+BEGIN_SRC emacs-lisp
+*** imh-mode - show keyboard layout like virtual keyboard
+[[file:images/imh-mode.png]]
+#+begin_src emacs-lisp
   (setq-default
    dotspacemacs-configuration-layers
    '(
-     (korean :variables korean-input-method-modeline-position 'left)
+     (korean :variables
+             show-keyboard-layout t)
      ))
-#+END_SRC
-
-*** Configure lunar calendar
-The day of week start is Sunday by default.
-if you want Monday, should set the following to =dotspacemacs/user-config=.
-
-#+BEGIN_SRC emacs-lisp
-  (setq calendar-week-start-day 1)
-#+END_SRC
+#+end_src
 
 *** spell checking
-**** Install programs
-- [[http://hunspell.sourceforge.net/][hunspell]]: spell checker - an improved replacement for myspell in OOo.
-- [[https://github.com/changwoo/hunspell-dict-ko][hunspell-dict-ko]]: Korean spellchecking dictionary for Hunspell.
+**** require packages
+     -[[http://hunspell.gihub.io/][ hunspell]]
+     - hunspell-en
+     -[[https://github.com/spellcheck-ko/hunspell-dict-ko][ hunspell-dict-ko]] 
 
-**** configuration
-If you want spell checking for Germany, should set the following to =dotspacemacs/user-config=.
-#+BEGIN_SRC emacs-lisp
-  (korean//ispell-add-dictionary '("de_DE"
-                                   "[a-zäöüßA-ZÄÖÜ]" "[^a-zäöüßA-ZÄÖÜ]" "[']" t
-                                   ("-d" "de_DE")
-                                   nil utf-8))
-#+END_SRC
+* Keybinding
+| keybinding  | description                                      |
+|-------------+--------------------------------------------------|
+| ~S SPC~     | toggle input method                              |
+| ~C \~       | cycle input methods                              |
+| ~C =~       | resize font (with rescale cjk font)              |
+| ~M $~       | ispell-word                                      |
+| ~SPC x g g~ | google translate (detect language automatically) |

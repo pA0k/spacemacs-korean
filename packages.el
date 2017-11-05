@@ -16,7 +16,8 @@
     (imh-mode :location local :toggle show-keyboard-layout)
     (cal-korea-x :location (recipe :fetcher github :repo "cinsk/cal-korea-x"))
     google-translate
-    (ispell :location built-in)
+    (ispell :location built-in
+            :toggle (configuration-layer/layer-usedp 'spell-checking))
     evil
     popwin
     ))
@@ -41,11 +42,12 @@
   )
 
 ;;;;; calendar
-;; TODO 대체휴일 - 설날/한가위/어린이날
 (defun korean/init-cal-korea-x ()
   (use-package cal-korea-x
     :init
     (setq calendar-week-start-day 0)
+    (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
+    (add-hook 'calendar-today-visible-hook 'calendar-mark-holidays)
     :config
     (progn
       (setq calendar-holidays cal-korea-x-korean-holidays)
@@ -87,9 +89,7 @@
                        (calendar-iso-from-absolute
                         (calendar-absolute-from-gregorian (list month day year)))))
               'font-lock-face 'calendar-iso-week-number-face))
-
-      (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
-      (add-hook 'today-visible-calendar-hook 'calendar-mark-holidays))))
+      )))
 
 ;;;;; Spell checking
 (defun korean/init-ispell ()
@@ -110,39 +110,13 @@
                ("-d" "en_US")
                nil utf-8)))
 
-      (setq ispell-dictionary "en_US")
-      (setq ispell-local-dictionary "en_US")
+      (setq ispell-dictionary "en_US,ko_KR")
+      (setq ispell-local-dictionary "en_US,ko_KR")
 
-      (let ((dicts '("en_US" "ko_KR")))
-        (setq ispell-dictionaries (make-ring (length dicts)))
-        (dolist (dict dicts)
-          (ring-insert ispell-dictionaries dict)))
-
-      (defun korean/ispell-cycle-dictionaries ()
-        ""
-        (interactive)
-        (let ((dict (ring-ref ispell-dictionaries -1)))
-          (ring-insert ispell-dictionaries dict)
-          (ispell-change-dictionary dict t)))
-
-      (defun korean//ispell-add-dictionary (dict)
-        "Easy to add ispell dictionary."
-        (let ((dict-length (1+ (ring-size ispell-dictionaries)))
-              (old-dicts   (ring-elements ispell-dictionaries))
-              (new-dict    (car dict)))
-          (setq ispell-dictionaries (make-ring dict-length))
-          (dolist (dict old-dicts)
-            (ring-insert ispell-dictionaries dict))
-          (ring-insert ispell-dictionaries new-dict))
-
-        (add-to-list 'ispell-local-dictionary-alist dict)))
+      (ispell-set-spellchecker-params)
+      (ispell-hunspell-add-multi-dic "en_US,ko_KR"))
     :config
-    (progn
-      ;; TODO: spacemacs와 어울리도록 바꿀 필요가 있다.
-      (bind-keys :map ispell-minor-keymap
-                 ("C-S-SPC" . korean/ispell-cycle-dictionaries)
-                 ;; ("M-D"     . ispell-region)
-                 ("M-$"     . ispell-word)))))
+    (bind-key "M-$" 'ispell-word ispell-minor-keymap)))
 
 ;;;;; translation
 (defun korean/post-init-google-translate ()
@@ -170,10 +144,6 @@
                                   (if (string= "ko" lang) "en" "ko")
                                   str)))
 
-  (defun delete-leading-whitespace (str)
-    (when (stringp str)
-      (replace-regexp-in-string "^\\s-+" "" str)))
-
   (defun korean/popup-translation (&optional str)
     "Display Google translation in tooltip."
     (interactive)
@@ -191,7 +161,8 @@
                            (forward-sentence)
                            (buffer-substring s (point)))))))
            (translated-str (save-window-excursion
-                             (funcall 'google-translate-to-korean (delete-leading-whitespace str))
+                             (funcall 'google-translate-to-korean
+                                      (replace-regexp-in-string "^\\s-+" str))
                              (switch-to-buffer "*Google Translate*")
                              (buffer-string))))
       (if (region-active-p)
@@ -204,7 +175,6 @@
                  :scroll-bar t
                  :margin t)))
 
-  (global-set-key    "\C-ct" 'korean/popup-translation)
   (evil-leader/set-key "xgg" 'korean/popup-translation))
 
 (defun korean/post-init-popwin ()
