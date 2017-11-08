@@ -1,1 +1,0 @@
-Korean layer for spacemacs

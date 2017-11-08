@@ -1,111 +1,105 @@
 #+TITLE: Korean layer
-#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="../../css/readtheorg.css" />
 
 [[file:images/Dokdo_is_our_torritory.png]]
 
 * Table of Contents                                         :TOC_4_org:noexport:
 - [[Description][Description]]
+  - [[Features:][Features:]]
 - [[Install][Install]]
-  - [[Layer][Layer]]
   - [[Configuration][Configuration]]
-    - [[configure fonts][configure fonts]]
-      - [[install fonts][install fonts]]
-      - [[configure fonts][configure fonts]]
-    - [[Configure the Default Input Method][Configure the Default Input Method]]
-    - [[imh-mode - show keyboard layout like virtual keyboard][imh-mode - show keyboard layout like virtual keyboard]]
-    - [[spell checking][spell checking]]
-      - [[require packages][require packages]]
-- [[Keybinding][Keybinding]]
+    - [[Font][Font]]
+    - [[Input method][Input method]]
+      - [[Sebeol-final][Sebeol-final]]
+      - [[Sebeol-390][Sebeol-390]]
+      - [[Show keyboard layout][Show keyboard layout]]
+    - [[Spell checking][Spell checking]]
+- [[Keybindings][Keybindings]]
 
 * Description
-This Layer adds Korean related packages:
-- korea-util: utilities for Korean.
-- [[https://github.com/TheBB/spaceline.git][spaceline]]: Modeline configuration library for powerline.
-- [[https://github.com/cinsk/cal-korea-x.git][cal-korea-x]]: Utilities for korean lunar calendar.
-- [[https://github.com/atykhonov/google-translate][google-translate]]: Emacs interface to Google Translate.
-- ispell: spelling check.
+  This layer is a collection of configurations for Korean users.
+
+** Features:
+   - Fix broken table in =org-mode= (5-36 size)
+   - Show keyboard layout automatically when input-method activate. I hope that
+     it would be helpful for those who challenge new keyboard layout such as
+     Sebeol-sik.
+   - Spell check in Korean: [[https://github.com/spellcheck-ko/hunspell-dict-ko][hunspell-dict-ko]]
+   - Support Korean luna calendar: [[https://github.com/cinsk/cal-korea-x][cal-korea-x]]
+   - auto detect language in google-translate
 
 * Install
-** Layer
-To use this configuration layer, add it to your =~/.spacemacs=. You will need to
-add =korean= to the existing =dotspacemacs-configuration-layers= list in this
-file.
+  To use this configuration layer, add it to your =~/.spacemacs=. You will need to
+  add =korean= to the existing =dotspacemacs-configuration-layers= list in this
+  file.
 
 ** Configuration
-*** configure fonts
-**** install fonts
-     - [[http://hangeul.naver.com/font][Nanum]]: defualt Yet-Hangul font
-     - [[http://dev.naver.com/projects/nanumfont/][NanumGothicCoding]]: default Hangul mono font
-     - [[http://dev.naver.com/projects/d2coding][D2Coding]]: Hangul mono fonts (optional)
-     - [[https://www.hancom.com/cs_center/csDownload.do?div=15&ver=139][Hamchorom]]: for support yet-Hangul (optional)
-     - [[http://mix-mplus-ipa.osdn.jp/migu/][migu]]: Japanese mono fonts (optional)
-     - [[http://wenq.org/wqy2/index.cgi?ZenHei][WenQuanYi]]: Chinese mono fonts (optional)
+*** Font
+    - [[https://dejavu-fonts.github.io/][DejaVu]]: default for latin
+    - [[http://dev.naver.com/projects/d2coding][D2Coding]]: Hangul fixed fonts (default)
+    - [[https://www.hancom.com/cs_center/csDownload.do?div=15&ver=139][Hamchorom]]: for support yet-Hangul (default)
+    - [[http://mix-mplus-ipa.osdn.jp/migu/][migu]]: Japanese fixed fonts (default)
+    - [[http://wenq.org/wqy2/index.cgi?ZenHei][WenQuanYi]]: Chinese fixed fonts (default)
 
-**** configure fonts
-We use different font of latin chars and CJK chars, it has some problems.
-The space between letters do not match each other. If we do not solve this problem,
-we will see ugly rendering table.
+    These fonts are defaults, but if you want something else, you could change
+    the values in the following:
+    #+BEGIN_SRC emacs-lisp
+      (setq-default
+       dotspacemacs-configuration-layers
+       '(
+         (korean :variables
+                 cjk-default-fonts `(,(car dotspacemacs-defualt-font)
+                                     :korean           "D2Coding"
+                                     :korean-yethangul "HCR Dotum"
+                                     :chinese          "Migu 2M"
+                                     :japanese         "WenQuanYi Zen Hei Mono"))
+         ))
+    #+END_SRC
 
-We will see perfectly rendering table by the following settings.
-The following settings are tested with [[http://dejavu-fonts.org/wiki/Main_Page][DejaVu Sans Mono]].
-when the value of =scale= is =1.2=, we can see the best result in 14 and 15 size,
-and =1.2307692307692308= is the best in 13 size. this value reference in [[http://crazia.tistory.com/entry/Emacs-24x-%EB%B2%84%EC%A0%BC-%ED%95%9C%EA%B8%80-%ED%8F%B0%ED%8A%B8-%EC%84%A4%EC%A0%95-orgmode-%EC%9D%98-%ED%95%9C%EA%B8%80-%ED%85%8C%EC%9D%B4%EB%B8%94-%EA%B9%A8%EC%A7%80%EC%A7%80-%EC%95%8A%EA%B2%8C-%EB%B3%B4%EC%9D%B4%EA%B8%B0][this page]].
+*** Input method
+    The default korean input method is =korean-hangul=. If you want Sebeol-sik,
+    you could set the variable =default-korean-keyboard= to ="3f"= or ="390"=:
+		#+BEGIN_SRC emacs-lisp
+      (setq-default
+       dotspacemacs-configuration-layers
+       '(
+         (korean :variables
+                 default-korean-keyboard "3f")
+         ))
+		#+END_SRC
 
-#+BEGIN_SRC emacs-lisp
-  (setq-default
-   dotspacemacs-configuration-layers
-   '(
-     (korean :variables
-             korean-default-fonts '(,(car dotspacemacs-defualt-font)
-                                    :korean           "D2Coding"
-                                    :korean-yethangul "HCR Dotum"
-                                    :chinese          "Migu 2M"
-                                    :japanese         "WenQuanYi Zen Hei Mono"))
-     ))
-#+END_SRC
+**** Sebeol-final
+     [[file:images/391.svg]]
+**** Sebeol-390
+     [[file:images/390.png]]
 
-*** Configure the Default Input Method
-The default Korean input method is =du-beol-sik=, if you are =se-beol-sik= user,
-you could set the variable =korean-default-input-method= to =3f= or =390=:
+**** Show keyboard layout
+     If you are new to Sebeol-sik, it will be easy to adapt that the keyboard
+     layout is visible for a while. And you could set the variable
+     =korean-want-ims= to ='("" "3f" "390")=, it is possible to switch between
+     input methods quickly.
+     #+BEGIN_SRC emacs-lisp
+       (setq-default
+        dotspacemacs-configuration-layers
+        '(
+          (korean :variables
+                  korean-want-ims          '("" "3f" "390")
+                  default-korean-keyboard  "3f"
+                  show-keyboard-layout     t)
+          ))
+     #+END_SRC
+     [[file:images/imh-mode.png]]
 
-#+begin_src emacs-lisp
-  (setq-default
-   dotspacemacs-configuration-layers
-   '(
-     (korean :variables
-             korean-want-ims '("" "3f")   ; Dubeol-sik and Sebeol-sik
-             default-korean-keyboard '3f)
-     ))
-#+end_src
+*** Spell checking
+    You could intall these packages. That's all.
+    -[[http://hunspell.gihub.io/][ hunspell]]
+    - hunspell-en
+    -[[https://github.com/spellcheck-ko/hunspell-dict-ko][ hunspell-dict-ko]]
 
-- se-beol-final
-[[file:images/391.svg]]
-
-- se-beol-390
-[[file:images/390.png]]
-
-*** imh-mode - show keyboard layout like virtual keyboard
-[[file:images/imh-mode.png]]
-#+begin_src emacs-lisp
-  (setq-default
-   dotspacemacs-configuration-layers
-   '(
-     (korean :variables
-             show-keyboard-layout t)
-     ))
-#+end_src
-
-*** spell checking
-**** require packages
-     -[[http://hunspell.gihub.io/][ hunspell]]
-     - hunspell-en
-     -[[https://github.com/spellcheck-ko/hunspell-dict-ko][ hunspell-dict-ko]] 
-
-* Keybinding
-| keybinding  | description                                      |
-|-------------+--------------------------------------------------|
-| ~S SPC~     | toggle input method                              |
-| ~C \~       | cycle input methods                              |
-| ~C =~       | resize font (with rescale cjk font)              |
-| ~M $~       | ispell-word                                      |
-| ~SPC x g g~ | google translate (detect language automatically) |
+* Keybindings
+  | keybinding         | description                                      |
+  |--------------------+--------------------------------------------------|
+  | ~S SPC~            | toggle input method                              |
+  | ~C \~              | cycle input methods                              |
+  | ~C =~ or ~SPC z X~ | resize font (with rescale cjk font)              |
+  | ~M $~              | ispell-word                                      |
+  | ~SPC x g g~        | google translate (detect language automatically) |

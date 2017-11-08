@@ -22,35 +22,22 @@
     :chinese           "WenQuanYi Zen Hei Mono"
     :japanese          "Migu 2M"))
 
-(setq font-scale-alist
-  '((9    . 10.5)
-    (10   . 12.0)
-    ;; (11   . 13.5)
-    ;; (12   . 15.0)
-    (13   . 16.0)
-    ;; (14   . 17.0)
-    (15   . 18.0)
-    ;; (16   . 19.5)
-    (17   . 20.0)
-    ;; (18   . 21.0)
-    (19   . 22.0)
-    (20   . 24.0)
-    (21   . 26.0)
-    ;; (22   . 27.0)
-    (24   . 28.0)
-    (26   . 32.0)
-    (28   . 34.0)
-    (30   . 36.0)
-    ;; (32   . 39.0)
-    (34   . 40.0)
-    (36   . 44.0)))
+(defconst font-scale-alist
+  '((5  .  6.0)
+    (6  .  8.0) (7  .  8.0) (8  . 10.0) (9  . 10.5) (10 . 12.0)
+    (11 . 14.0) (12 . 14.0) (13 . 16.0) (14 . 16.0) (15 . 18.0)
+    (16 . 20.0) (17 . 20.0) (18 . 22.0) (19 . 22.0) (20 . 24.0)
+    (21 . 26.0) (22 . 26.0) (23 . 28.0) (24 . 28.0) (25 . 30.0)
+    (26 . 32.0) (27 . 32.0) (28 . 34.0) (29 . 34.0) (30 . 36.0)
+    (31 . 38.0) (32 . 38.5) (33 . 40.0) (34 . 40.0) (35 . 42.0)
+    (36 . 44.0))
+  "Alist stored matching font-size (latin . cjk)")
 
 (setq input-method-verbose-flag nil
       input-method-highlight-flag nil)
 
 (spacemacs|do-after-display-system-init
- (let ((scale
-        (car (assoc (plist-get (cdr dotspacemacs-default-font) :size)
-                    font-scale-alist))))
+ (let ((scale (assoc (plist-get (cdr dotspacemacs-default-font) :size)
+                     font-scale-alist)))
    (set-cjk-font scale))
  )

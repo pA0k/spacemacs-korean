@@ -7,7 +7,7 @@
         (japanese  (plist-get (cdr cjk-default-fonts) :japanese)))
     (set-face-attribute 'default nil :family default)
     ;; Korean Hangul
-    (set-fontset-font t 'hangul (font-spec :name korean))
+    (--apply-fonts korean '(hangul))
     ;; Korean YetHangul
     (--apply-fonts yethangul
       '((#x1100 . #x11ff) (#xa960 . #xa97c) (#xd7b0 . #xd7fb) ; 옛한글 첫·가·끝 코드
@@ -15,7 +15,7 @@
         (#xf784 . #xf800) (#xf806 . #xf864) (#xf86a . #xf8f7) ; 옛한글 조합형 첫·가·끝
         ))
     ;; Chinese
-    (set-fontset-font t '(#x4e00 . #x9fff) chinese)
+    (--apply-fonts chinese '((#x4e00 . #x9fff)))
     ;; Japanese
     (--apply-fonts japanese
       '((#x3000 . #x303f)               ; punctuation
@@ -30,11 +30,14 @@
 
 (defmacro --apply-fonts (font-name charsets)
   (declare (indent defun))
-  `(mapcar (lambda (charset)
-             (set-fontset-font t charset (font-spec :name ,font-name)))
-           ,charsets))
+  `(if (and (stringp ,font-name)
+            (member (font-family-list)))
+       (mapcar (lambda (charset)
+                 (set-fontset-font t charset (font-spec :name ,font-name)))
+               ,charsets)
+     (error (format "Not installed font (%s)" ,font-name))))
 
-(defun rescale-cjk-fonts (font-size)
+(defun rescale-cjk-fonts (scale)
   (let ((fontlist (cl-loop for (key value)
                            ;; Note: 옛한글은 가변폭이므로 제외한다.
                            on (spacemacs/mplist-remove
@@ -42,33 +45,31 @@
                            by 'cddr
                            collect value)))
     (mapcar (lambda (font)
-              (let ((scale (/ (alist-get font-size font-scale-alist)
-			                        (float font-size))))
+              (let ((data (/ (cdr scale) (float (car scale)))))
                 (if (assoc font face-font-rescale-alist)
-                    (setcdr (assoc font face-font-rescale-alist) scale)
-                  (add-to-list 'face-font-rescale-alist `(,font . ,scale)))))
+                    (setcdr (assoc font face-font-rescale-alist) data)
+                  (add-to-list 'face-font-rescale-alist `(,font . ,data)))))
             fontlist)))
 
-(defun adjust-font-size (step)
+(defun resize-font-size (direction)
   "Increase/Decrease font size."
   (let ((scale-steps font-scale-alist)
         (default-scale
           (assoc (plist-get (cdr dotspacemacs-default-font) :size) font-scale-alist))
         (current-scale
          (assoc (font-get (face-attribute 'default :font) :size) font-scale-alist)))
-    (let (size)
-      (if (= step 0)
-          (setq size (car default-scale))
-        (if (< step 0)
+    (let (scale)
+      (if (eq direction 'reset)
+          (setq scale default-scale)
+        (if (eq direction 'decrease)
             (setq scale-steps (reverse scale-steps)))
         (if (eq current-scale (car (last scale-steps)))
             (error "There is not enough scale data, Font size cannot be changed."))
-        (setq size (caadr (member current-scale scale-steps))))
+        (setq scale (cadr (member current-scale scale-steps))))
       ;; Latin font
       (set-frame-font (format "%s:pixelsize=%d"
-                              (car dotspacemacs-default-font) size))
-      ;; font size
-      (set-cjk-font size)
+                              (car dotspacemacs-default-font) (car scale)))
+      (rescale-cjk-fonts scale)
       ;; (modify-frame-parameters
       ;;  (selected-frame)
       ;;  (list (cons 'fullscreen 'fullheight)
@@ -76,17 +77,17 @@
       ;;        (cons 'left -1)))
       )))
 
-(defun step-up-font-size ()
+(defun increase-font-size ()
   (interactive)
-  (adjust-font-size 1))
+  (resize-font-size 'increase))
 
-(defun step-down-font-size ()
+(defun decrease-font-size ()
   (interactive)
-  (adjust-font-size -1))
+  (resize-font-size 'decrease))
 
 (defun reset-font-size ()
   (interactive)
-  (adjust-font-size 0))
+  (resize-font-size 'reset))
 
 ;;; input method
 (when korean-want-ims

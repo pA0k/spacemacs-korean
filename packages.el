@@ -59,15 +59,17 @@
       (set-face-attribute 'calendar-saturday-face nil
                           :foreground "#eeee00")
 
-      (defadvice calendar-generate-month
-          (after highlight-weekend-days (month year indent) activate)
+      (define-advice calendar-generate-month
+          (:after (month year indent) highlight-weekend-days)
         "Highlight weekend days"
-        (dotimes (i 31)
-          (let ((date (list month (1+ i) year)))
-            (cond ((= (calendar-day-of-week date) 0)
-                   (calendar-mark-visible-date date 'calendar-sunday-face))
-                  ((= (calendar-day-of-week date) 6)
-                   (calendar-mark-visible-date date 'calendar-saturday-face))))))
+        (mapcar
+         (lambda (n)
+           (let ((date (list month (1+ n) year)))
+             (cond ((= (calendar-day-of-week date) 0)
+                    (calendar-mark-visible-date date 'calendar-sunday-face))
+                   ((= (calendar-day-of-week date) 6)
+                    (calendar-mark-visible-date date 'calendar-saturday-face)))))
+         (number-sequence 1 31)))
 
       (copy-face 'default 'calendar-iso-week-header-face)
       (copy-face 'calendar-iso-week-header-face 'calendar-iso-week-number-face)
