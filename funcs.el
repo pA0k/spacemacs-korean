@@ -1,41 +1,32 @@
 ;;; * Fonts
-(defun set-cjk-font (scale)
-  (let ((default   (car cjk-default-fonts))
-        (korean    (plist-get (cdr cjk-default-fonts) :korean))
-        (yethangul (plist-get (cdr cjk-default-fonts) :korean-yethangul))
-        (chinese   (plist-get (cdr cjk-default-fonts) :chinese))
-        (japanese  (plist-get (cdr cjk-default-fonts) :japanese)))
-    (set-face-attribute 'default nil :family default)
-    ;; Korean Hangul
-    (--apply-fonts korean '(hangul))
-    ;; Korean YetHangul
-    (--apply-fonts yethangul
-      '((#x1100 . #x11ff) (#xa960 . #xa97c) (#xd7b0 . #xd7fb) ; 옛한글 첫·가·끝 코드
-        (#xe0bc . #xefff) (#xf100 . #xf66e)                   ; 옛한글 완성형
-        (#xf784 . #xf800) (#xf806 . #xf864) (#xf86a . #xf8f7) ; 옛한글 조합형 첫·가·끝
-        ))
-    ;; Chinese
-    (--apply-fonts chinese '((#x4e00 . #x9fff)))
-    ;; Japanese
-    (--apply-fonts japanese
-      '((#x3000 . #x303f)               ; punctuation
-        (#x3040 . #x309f)               ; Hiragana
-        (#x30a0 . #x30ff)               ; Katakan
-        (#xff00 . #xffef)               ; full-width roman and half-width katakana
-        ))
-    ;; unicode characters
-    (set-fontset-font t nil "Symbola" nil 'prepend)
-    ;; rescale CJK fonts
-    (rescale-cjk-fonts scale)))
-
-(defmacro --apply-fonts (font-name charsets)
-  (declare (indent defun))
-  `(if (and (stringp ,font-name)
-            (member ,font-name (font-family-list)))
-       (mapcar (lambda (charset)
-                 (set-fontset-font t charset (font-spec :name ,font-name)))
-               ,charsets)
-     (error (format "Not installed font (%s)" ,font-name))))
+(defun set-cjk-fonts (scale)
+  (let* ((font-list (cl-loop for     (key value)
+                             on      (cdr cjk-default-fonts)
+                             by      'cddr
+                             collect value))
+         (charsets '((hangul)
+                     (;; 옛한글 첫·가·끝 코드
+                      (#x1100 . #x11ff) (#xa960 . #xa97c) (#xd7b0 . #xd7fb)
+                      ;; 옛한글 완성형
+                      (#xe0bc . #xefff) (#xf100 . #xf66e)
+                      ;; 옛한글 조합형 첫·가·끝
+                      (#xf784 . #xf800) (#xf806 . #xf864) (#xf86a . #xf8f7))
+                     ((#x4e00 . #x9fff))
+                     (;(#x3000 . #x303f)   ; punctuation
+                      (#x3040 . #x309f)    ; Hiragana
+                      (#x30a0 . #x30ff)    ; Katakan
+                      (#xff00 . #xffef)))) ; full-width roman and half-width katakana
+         (font-name (pop font-list)))
+    (while (and font-name
+                (member font-name (font-family-list)))
+      (mapc (lambda (charset)
+              (set-fontset-font t charset (font-spec :name font-name)))
+            (pop charsets))
+      (setq font-name (pop font-list))))
+  ;; unicode symbols
+  (set-fontset-font t nil "Symbola" nil 'prepend)
+  ;; rescale CJK fonts
+  (rescale-cjk-fonts scale))
 
 (defun rescale-cjk-fonts (scale)
   (let ((fontlist (cl-loop for (key value)
@@ -44,12 +35,12 @@
                                (cdr cjk-default-fonts) :korean-yethangul)
                            by 'cddr
                            collect value)))
-    (mapcar (lambda (font)
-              (let ((data (/ (cdr scale) (float (car scale)))))
-                (if (assoc font face-font-rescale-alist)
-                    (setcdr (assoc font face-font-rescale-alist) data)
-                  (add-to-list 'face-font-rescale-alist `(,font . ,data)))))
-            fontlist)))
+    (mapc (lambda (font)
+            (let ((data (/ (cdr scale) (float (car scale)))))
+              (if (assoc font face-font-rescale-alist)
+                  (setcdr (assoc font face-font-rescale-alist) data)
+                (add-to-list 'face-font-rescale-alist `(,font . ,data)))))
+          fontlist)))
 
 (defun resize-font-size (direction)
   "Increase/Decrease font size."
@@ -88,13 +79,13 @@
 (defun reset-font-size ()
   (interactive)
   (resize-font-size 'reset))
-
+
 ;;; input method
 (when korean-want-ims
   (setq korean-input-methods (make-ring (length korean-want-ims)))
-  (mapcar (lambda (im)
-            (ring-insert korean-input-methods im))
-          korean-want-ims)
+  (mapc (lambda (im)
+          (ring-insert korean-input-methods im))
+        korean-want-ims)
 
   (defun cycle-korean-input-methods ()
     (interactive)

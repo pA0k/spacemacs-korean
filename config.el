@@ -39,5 +39,5 @@
 (spacemacs|do-after-display-system-init
  (let ((scale (assoc (plist-get (cdr dotspacemacs-default-font) :size)
                      font-scale-alist)))
-   (set-cjk-font scale))
+   (set-cjk-fonts scale))
  )
