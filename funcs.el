@@ -31,7 +31,7 @@
 (defmacro --apply-fonts (font-name charsets)
   (declare (indent defun))
   `(if (and (stringp ,font-name)
-            (member (font-family-list)))
+            (member ,font-name (font-family-list)))
        (mapcar (lambda (charset)
                  (set-fontset-font t charset (font-spec :name ,font-name)))
                ,charsets)
