@@ -30,7 +30,7 @@
     :config (imh-mode 1)))
 
 (defun korean/post-init-evil ()
-  (advice-add 'evil-normal-state :before #'turn-off-input-method)
+  (advice-add 'evil-normal-state :before #'korean//turn-off-input-method)
 
   (mapcar (lambda (mode)
             (let ((keymap (intern (format "evil-%s-state-map" mode))))
@@ -38,8 +38,7 @@
                 #'(lambda () (interactive)
                     (message
                      (format "Input method is disabled in %s state." evil-state))))))
-          '(motion normal visual))
-  )
+          '(motion normal visual)))
 
 ;;;;; calendar
 (defun korean/init-cal-korea-x ()

@@ -17,27 +17,27 @@
 
 (defvar cjk-default-fonts
   `(,(car dotspacemacs-default-font)
-    :korean            "D2Coding"
-    :korean-yethangul  "HCR Dotum"
+    :unicode           "Symbola"
     :chinese           "WenQuanYi Zen Hei Mono"
-    :japanese          "Migu 2M"))
+    :japanese          "Migu 2M"
+    :korean            "D2Coding"
+    :korean-yethangul  "HCR Dotum"))
 
 (defconst font-scale-alist
-  '((5  .  6.0)
-    (6  .  8.0) (7  .  8.0) (8  . 10.0) (9  . 10.5) (10 . 12.0)
-    (11 . 14.0) (12 . 14.0) (13 . 16.0) (14 . 16.0) (15 . 18.0)
-    (16 . 20.0) (17 . 20.0) (18 . 22.0) (19 . 22.0) (20 . 24.0)
-    (21 . 26.0) (22 . 26.0) (23 . 28.0) (24 . 28.0) (25 . 30.0)
-    (26 . 32.0) (27 . 32.0) (28 . 34.0) (29 . 34.0) (30 . 36.0)
-    (31 . 38.0) (32 . 38.5) (33 . 40.0) (34 . 40.0) (35 . 42.0)
-    (36 . 44.0))
-  "Alist stored matching font-size (latin . cjk)")
+  '((5.0  .  6.0)
+    (6.0  .  8.0) (7.0  .  8.0) (8.0  . 10.0) (9.0  . 10.5) (10.0 . 12.0)
+    (11.0 . 14.0) (12.0 . 14.0) (13.0 . 16.0) (14.0 . 16.0) (15.0 . 18.0)
+    (16.0 . 20.0) (17.0 . 20.0) (18.0 . 22.0) (19.0 . 22.0) (20.0 . 24.0)
+    (21.0 . 26.0) (22.0 . 26.0) (23.0 . 28.0) (24.0 . 28.0) (25.0 . 30.0)
+    (26.0 . 32.0) (27.0 . 32.0) (28.0 . 34.0) (29.0 . 34.0) (30.0 . 36.0)
+    (31.0 . 38.0) (32.0 . 38.5) (33.0 . 40.0) (34.0 . 40.0) (35.0 . 42.0)
+    (36.0 . 44.0))
+  "Pair list for rescale font (latin . cjk).")
 
 (setq input-method-verbose-flag nil
       input-method-highlight-flag nil)
 
 (spacemacs|do-after-display-system-init
- (let ((scale (assoc (plist-get (cdr dotspacemacs-default-font) :size)
-                     font-scale-alist)))
-   (set-cjk-fonts scale))
- )
+ (setq korean-default-font-size
+       (font-get (face-attribute 'default :font) :size))
+ (korean//set-fonts))
