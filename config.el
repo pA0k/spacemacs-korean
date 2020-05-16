@@ -15,7 +15,7 @@
 ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
-(defvar cjk-default-fonts
+(defvar korean-default-fonts
   `(,(car dotspacemacs-default-font)
     :unicode           "Symbola"
     :chinese           "WenQuanYi Zen Hei Mono"
@@ -23,7 +23,7 @@
     :korean            "D2Coding"
     :korean-yethangul  "HCR Dotum"))
 
-(defconst font-scale-alist
+(defconst korean-font-scale-alist
   '((5.0  .  6.0)
     (6.0  .  8.0) (7.0  .  8.0) (8.0  . 10.0) (9.0  . 10.5) (10.0 . 12.0)
     (11.0 . 14.0) (12.0 . 14.0) (13.0 . 16.0) (14.0 . 16.0) (15.0 . 18.0)
